@@ -11,12 +11,14 @@ document.addEventListener("DOMContentLoaded", function() {
         height: 50,
         jumping: false,
         jumpHeight: 100,
-        jumpSpeed: 10,
+        jumpSpeed: 20,
         velocityX: 0,
         velocityY: 0,
         acceleration: 0,
         friction: 0.8,
-        gravity: 1
+        gravity: 1,
+        onGround: true,
+        platformGravity: 0.5
     };
 
     const platform = {
@@ -43,18 +45,19 @@ document.addEventListener("DOMContentLoaded", function() {
         pressedKeys[event.key] = event.type === 'keydown';
 
         if (pressedKeys['ArrowRight']){
-            player.acceleration = 1;
+            player.acceleration = 1.2;
         }
         else if (pressedKeys['ArrowLeft']){
-            player.acceleration = -1
+            player.acceleration = -1.2
         }
         else {
             player.acceleration = 0;
         }
 
-        if (pressedKeys['ArrowUp'] && !player.jumping){
+        if (pressedKeys['ArrowUp'] && !player.jumping && player.onGround){
             player.jumping = true;
             player.velocityY = -player.jumpSpeed;
+            player.onGround = false;
         }
     }
 
@@ -69,6 +72,29 @@ document.addEventListener("DOMContentLoaded", function() {
         if (player.y > canvas.height - player.height){
             player.y = canvas.height - player.height;
             player.jumping = false;
+            player.onGround = true;
+        } else {
+            player.onGround = false;
+
+            if (player.onGround) {
+                player.velocityY += player.gravity;
+            } else {
+                player.velocityY += player.platformGravity;
+            }
+
+        }
+
+        if (player.x < platform.x + platform.width &&
+            player.x + player.width > platform.x &&
+            player.y < platform.y + platform.height &&
+            player.y + player.height > platform.y) {
+            // Collision detected
+            if (player.velocityY >= 0 && player.y + player.height < platform.y + player.velocityY) {
+                player.y = platform.y - player.height;
+                player.jumping = false;
+                player.onGround = true;
+                player.velocityY = 0;
+            }
         }
 
     }
